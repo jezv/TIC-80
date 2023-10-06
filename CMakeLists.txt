@@ -1329,14 +1329,33 @@ endif()
 
 if(PSVITA)
     set(VITASDK_INSTALL_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk)
+    set(VITASDK_INSTALL_LOGS_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk-log)
     set(ENV{VITASDK} ${VITASDK_INSTALL_DIR})
-    execute_process( 
-        COMMAND ./bootstrap-vitasdk.sh
-        COMMAND ./install-all.sh
-        RESULT_VARIABLE CMD_ERROR
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/vdpm
-    )
-   message(STATUS "PSVITA VITASDK bootstrap/install CMD_ERROR=${CMD_ERROR}") 
+    set(VDPM_DIR ${CMAKE_SOURCE_DIR}/vendor/vdpm)
+
+    file(REMOVE_RECURSE ${VITASDK_INSTALL_DIR})
+    file(MAKE_DIRECTORY ${VITASDK_INSTALL_DIR})
+    file(MAKE_DIRECTORY ${VITASDK_INSTALL_LOGS_DIR})
+
+    function(vitasdksetup CMD)
+        set(VITASDKSETUP_LOGFILE ${VITASDK_INSTALL_LOGS_DIR}/${CMD}.log)
+        message(STATUS "invoking ${VDPM_DIR}/${CMD} logging to ${VITASDKSETUP_LOGFILE}")
+        execute_process( 
+            COMMAND ./${CMD}
+            RESULT_VARIABLE CMD_ERROR
+            WORKING_DIRECTORY ${VDPM_DIR}
+            OUTPUT_FILE ${VITASDKSETUP_LOGFILE}
+            ERROR_FILE ${VITASDKSETUP_LOGFILE}
+        )
+        if (CMD_ERROR)
+            message(FATAL_ERROR "psvitasdk ${CMD} failed returned:'${CMD_ERROR}', for details see log:'${VITASDKSETUP_LOGFILE}'")
+        endif()
+    endfunction()
+    
+    vitasdksetup(bootstrap-vitasdk.sh)
+    vitasdksetup(install-all.sh)
+    
+    message(STATUS "psvita vitasdk successfully installed to:'${VITASDK_INSTALL_DIR}'")
 endif()
 
 ################################
