@@ -52,6 +52,43 @@ if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 endif()
 
+if(PSVITA)
+    set(VITASDK_INSTALL_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk)
+    set(VITASDK_INSTALL_LOGS_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk-log)
+    set(ENV{VITASDK} ${VITASDK_INSTALL_DIR})
+    set(VDPM_DIR ${CMAKE_SOURCE_DIR}/vendor/vdpm)
+
+    file(REMOVE_RECURSE ${VITASDK_INSTALL_DIR})
+    file(MAKE_DIRECTORY ${VITASDK_INSTALL_DIR})
+    file(MAKE_DIRECTORY ${VITASDK_INSTALL_LOGS_DIR})
+
+    function(vitasdksetup CMD)
+        set(VITASDKSETUP_LOGFILE ${VITASDK_INSTALL_LOGS_DIR}/${CMD}.log)
+        message(STATUS "invoking ${VDPM_DIR}/${CMD} logging to ${VITASDKSETUP_LOGFILE}")
+        execute_process( 
+            COMMAND ./${CMD}
+            RESULT_VARIABLE CMD_ERROR
+            WORKING_DIRECTORY ${VDPM_DIR}
+            OUTPUT_FILE ${VITASDKSETUP_LOGFILE}
+            ERROR_FILE ${VITASDKSETUP_LOGFILE}
+        )
+        if (CMD_ERROR)
+            message(FATAL_ERROR "psvitasdk ${CMD} failed returned:'${CMD_ERROR}', for details see log:'${VITASDKSETUP_LOGFILE}'")
+        endif()
+    endfunction()
+    
+    vitasdksetup(bootstrap-vitasdk.sh)
+    vitasdksetup(install-all.sh)
+    
+    message(STATUS "psvita vitasdk successfully installed to:'${VITASDK_INSTALL_DIR}'")
+    
+    ## This includes the Vita toolchain, must go before project definition
+    # It is a convenience so you do not have to type
+    # -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake for cmake. It is
+    if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
+    endif()
+endif()
 
 project(TIC-80 VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION} LANGUAGES C CXX)
 message("Building for target : ${CMAKE_SYSTEM_NAME}")
@@ -1328,34 +1365,70 @@ endif()
 ################################
 
 if(PSVITA)
-    set(VITASDK_INSTALL_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk)
-    set(VITASDK_INSTALL_LOGS_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk-log)
-    set(ENV{VITASDK} ${VITASDK_INSTALL_DIR})
-    set(VDPM_DIR ${CMAKE_SOURCE_DIR}/vendor/vdpm)
 
-    file(REMOVE_RECURSE ${VITASDK_INSTALL_DIR})
-    file(MAKE_DIRECTORY ${VITASDK_INSTALL_DIR})
-    file(MAKE_DIRECTORY ${VITASDK_INSTALL_LOGS_DIR})
+    ################# HELLO WORLD TEST ##################
 
-    function(vitasdksetup CMD)
-        set(VITASDKSETUP_LOGFILE ${VITASDK_INSTALL_LOGS_DIR}/${CMD}.log)
-        message(STATUS "invoking ${VDPM_DIR}/${CMD} logging to ${VITASDKSETUP_LOGFILE}")
-        execute_process( 
-            COMMAND ./${CMD}
-            RESULT_VARIABLE CMD_ERROR
-            WORKING_DIRECTORY ${VDPM_DIR}
-            OUTPUT_FILE ${VITASDKSETUP_LOGFILE}
-            ERROR_FILE ${VITASDKSETUP_LOGFILE}
-        )
-        if (CMD_ERROR)
-            message(FATAL_ERROR "psvitasdk ${CMD} failed returned:'${CMD_ERROR}', for details see log:'${VITASDKSETUP_LOGFILE}'")
-        endif()
-    endfunction()
-    
-    vitasdksetup(bootstrap-vitasdk.sh)
-    vitasdksetup(install-all.sh)
-    
-    message(STATUS "psvita vitasdk successfully installed to:'${VITASDK_INSTALL_DIR}'")
+    # This line adds Vita helper macros, must go after project definition in order
+    # to build Vita specific artifacts (self/vpk).
+    include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
+
+    ## Configuration options for this app
+    # Display name (under bubble in LiveArea)
+    set(VITA_APP_NAME "Hello World")
+    # Unique ID must be exactly 9 characters. Recommended: XXXXYYYYY where X =
+    # unique string of developer and Y = a unique number for this app
+    set(VITA_TITLEID  "TIC000080")
+    # Optional version string to show in LiveArea's more info screen
+    set(VITA_VERSION  ${PROJECT_VERSION})
+
+    ## Flags and includes for building
+    # Note that we make sure not to overwrite previous flags
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    # Optional. You can specify more param.sfo flags this way.
+    set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
+
+    set(COMMON_DIR ~/vsdk-samples/common)
+    set(HELLO_DIR ~/vsdk-samples/hello_world)
+    set(SCE_DIR ~/vsdk-samples/hello_world/sce_sys)
+
+    # Add any additional include paths here
+    include_directories(
+     ${COMMON_DIR} # This is for debugScreenPrintf(), you shouldn't need it in your projects
+    )
+
+    # Add any additional library paths here
+    # ${CMAKE_CURRENT_BINARY_DIR} lets you use any library currently being built
+    link_directories(
+    ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+    ## Build and link
+    # Add all the files needed to compile here
+    add_executable(${PROJECT_NAME}
+    ${HELLO_DIR}/src/main.c
+    ${COMMON_DIR}/debugScreen.c
+    )
+
+    # Library to link to (drop the -l prefix). This will mostly be stubs.
+    target_link_libraries(${PROJECT_NAME}
+    SceLibKernel_stub # this line is only for demonstration. It's not needed as
+                        # the most common stubs are automatically included.
+    SceDisplay_stub   # This used by debugScreenPrintf()
+    )
+
+    ## Create Vita files
+    vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME})
+    # The FILE directive lets you add additional files to the VPK, the syntax is
+    # FILE src_path dst_path_in_vpk. In this case, we add the LiveArea paths.
+    vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
+    VERSION ${VITA_VERSION}
+    NAME ${VITA_APP_NAME}
+    FILE ${SCE_DIR}/icon0.png ${SCE_DIR}/icon0.png
+    FILE ${SCE_DIR}/livearea/contents/bg.png ${SCE_DIR}/livearea/contents/bg.png
+    FILE ${SCE_DIR}/livearea/contents/startup.png ${SCE_DIR}/livearea/contents/startup.png
+    FILE ${SCE_DIR}/livearea/contents/template.xml ${SCE_DIR}/livearea/contents/template.xml
+    )
 endif()
 
 ################################
