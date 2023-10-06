@@ -58,29 +58,40 @@ if(PSVITA)
     set(ENV{VITASDK} ${VITASDK_INSTALL_DIR})
     set(VDPM_DIR ${CMAKE_SOURCE_DIR}/vendor/vdpm)
 
-    file(REMOVE_RECURSE ${VITASDK_INSTALL_DIR})
-    file(MAKE_DIRECTORY ${VITASDK_INSTALL_DIR})
-    file(MAKE_DIRECTORY ${VITASDK_INSTALL_LOGS_DIR})
+    if(NOT EXISTS ${VITASDK_INSTALL_DIR})
+        file(REMOVE_RECURSE ${VITASDK_INSTALL_DIR})
+        file(MAKE_DIRECTORY ${VITASDK_INSTALL_DIR})
+        file(MAKE_DIRECTORY ${VITASDK_INSTALL_LOGS_DIR})
 
-    function(vitasdksetup CMD)
-        set(VITASDKSETUP_LOGFILE ${VITASDK_INSTALL_LOGS_DIR}/${CMD}.log)
-        message(STATUS "invoking ${VDPM_DIR}/${CMD} logging to ${VITASDKSETUP_LOGFILE}")
-        execute_process( 
-            COMMAND ./${CMD}
-            RESULT_VARIABLE CMD_ERROR
-            WORKING_DIRECTORY ${VDPM_DIR}
-            OUTPUT_FILE ${VITASDKSETUP_LOGFILE}
-            ERROR_FILE ${VITASDKSETUP_LOGFILE}
-        )
-        if (CMD_ERROR)
-            message(FATAL_ERROR "psvitasdk ${CMD} failed returned:'${CMD_ERROR}', for details see log:'${VITASDKSETUP_LOGFILE}'")
+        # remove tmp files, otherwise vdpm assumes you already have things installed
+        file(GLOB DIRTY_TMP_FILES /tmp/vdpm_install_*)
+        list(LENGTH DIRTY_TMP_FILES FLEN)
+        if(FLEN)
+            file(REMOVE_RECURSE ${DIRTY_TMP_FILES})
         endif()
-    endfunction()
-    
-    vitasdksetup(bootstrap-vitasdk.sh)
-    vitasdksetup(install-all.sh)
-    
-    message(STATUS "psvita vitasdk successfully installed to:'${VITASDK_INSTALL_DIR}'")
+
+        function(vitasdksetup CMD)
+            set(VITASDKSETUP_LOGFILE ${VITASDK_INSTALL_LOGS_DIR}/${CMD}.log)
+            message(STATUS "invoking ${VDPM_DIR}/${CMD} logging to ${VITASDKSETUP_LOGFILE}")
+            execute_process( 
+                COMMAND ./${CMD}
+                RESULT_VARIABLE CMD_ERROR
+                WORKING_DIRECTORY ${VDPM_DIR}
+                OUTPUT_FILE ${VITASDKSETUP_LOGFILE}
+                ERROR_FILE ${VITASDKSETUP_LOGFILE}
+            )
+            if (CMD_ERROR)
+                message(FATAL_ERROR "psvitasdk ${CMD} failed returned:'${CMD_ERROR}', for details see log:'${VITASDKSETUP_LOGFILE}'")
+            endif()
+        endfunction()
+        
+        vitasdksetup(bootstrap-vitasdk.sh)
+        vitasdksetup(install-all.sh)
+        
+        message(STATUS "psvita vitasdk successfully installed to:'${VITASDK_INSTALL_DIR}'")
+    else()
+        message(STATUS "psvita vitasdk already installed at:'${VITASDK_INSTALL_DIR}'")
+    endif()
     
     ## This includes the Vita toolchain, must go before project definition
     # It is a convenience so you do not have to type
@@ -1367,6 +1378,7 @@ endif()
 if(PSVITA)
 
     ################# HELLO WORLD TEST ##################
+    set(VELF_NAME vitahello)
 
     # This line adds Vita helper macros, must go after project definition in order
     # to build Vita specific artifacts (self/vpk).
@@ -1388,40 +1400,41 @@ if(PSVITA)
     # Optional. You can specify more param.sfo flags this way.
     set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 
-    set(COMMON_DIR ~/vsdk-samples/common)
-    set(HELLO_DIR ~/vsdk-samples/hello_world)
-    set(SCE_DIR ~/vsdk-samples/hello_world/sce_sys)
+    set(COMMON_DIR $ENV{VITASDK}/share/gcc-arm-vita-eabi/samples/common)
+    set(HELLO_DIR $ENV{VITASDK}/share/gcc-arm-vita-eabi/samples/hello_world)
 
     # Add any additional include paths here
     include_directories(
      ${COMMON_DIR} # This is for debugScreenPrintf(), you shouldn't need it in your projects
+     $ENV{VITASDK}/arm-vita-eabi/include
     )
 
     # Add any additional library paths here
     # ${CMAKE_CURRENT_BINARY_DIR} lets you use any library currently being built
     link_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
+     $ENV{VITASDK}/arm-vita-eabi/lib
     )
 
     ## Build and link
     # Add all the files needed to compile here
-    add_executable(${PROJECT_NAME}
+    add_executable(vitahello
     ${HELLO_DIR}/src/main.c
     ${COMMON_DIR}/debugScreen.c
     )
 
     # Library to link to (drop the -l prefix). This will mostly be stubs.
-    target_link_libraries(${PROJECT_NAME}
-    SceLibKernel_stub # this line is only for demonstration. It's not needed as
-                        # the most common stubs are automatically included.
-    SceDisplay_stub   # This used by debugScreenPrintf()
-    )
+    #target_link_libraries(${VELF_NAME}
+    #SceLibKernel_stub # this line is only for demonstration. It's not needed as
+    #                    # the most common stubs are automatically included.
+    #SceDisplay_stub   # This used by debugScreenPrintf()
+    #)
 
     ## Create Vita files
-    vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME})
+    vita_create_self(${VELF_NAME}.self ${VELF_NAME})
     # The FILE directive lets you add additional files to the VPK, the syntax is
     # FILE src_path dst_path_in_vpk. In this case, we add the LiveArea paths.
-    vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
+    vita_create_vpk(${VELF_NAME}.vpk ${VITA_TITLEID} ${VELF_NAME}.self
     VERSION ${VITA_VERSION}
     NAME ${VITA_APP_NAME}
     FILE ${SCE_DIR}/icon0.png ${SCE_DIR}/icon0.png
