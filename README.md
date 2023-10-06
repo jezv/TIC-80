@@ -107,7 +107,7 @@ Install with [Install instructions](#install-instructions)
 
 run the following commands in the Terminal
 ```
-sudo apt-get install g++ git cmake ruby-full libglvnd-dev libglu1-mesa-dev freeglut3-dev libasound2-dev -y
+sudo apt-get install g++ git cmake ruby-full libglvnd-dev libglu1-mesa-dev freeglut3-dev libasound2-dev libcurl4-openssl-dev -y
 git clone --recursive https://github.com/nesbox/TIC-80 && cd TIC-80/build
 cmake ..
 make -j4

@@ -1324,6 +1324,22 @@ if(N3DS)
 endif()
 
 ################################
+# TIC-80 app (PSVITA)
+################################
+
+if(PSVITA)
+    set(VITASDK_INSTALL_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk)
+    set(ENV{VITASDK} ${VITASDK_INSTALL_DIR})
+    execute_process( 
+        COMMAND ./bootstrap-vitasdk.sh
+        COMMAND ./install-all.sh
+        RESULT_VARIABLE CMD_ERROR
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/vdpm
+    )
+   message(STATUS "PSVITA VITASDK bootstrap/install CMD_ERROR=${CMD_ERROR}") 
+endif()
+
+################################
 # TIC-80 stub
 ################################
 

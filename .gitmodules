@@ -86,3 +86,6 @@
 	path = vendor/msf_gif
 	url = https://github.com/notnullnotvoid/msf_gif.git
 	shallow = true
+[submodule "vendor/vdpm"]
+	path = vendor/vdpm
+	url = https://github.com/vitasdk/vdpm
