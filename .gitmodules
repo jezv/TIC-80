@@ -88,4 +88,4 @@
 	shallow = true
 [submodule "vendor/vdpm"]
 	path = vendor/vdpm
-	url = https://github.com/vitasdk/vdpm
+	url = https://github.com/jezv/vdpm
