@@ -68,7 +68,7 @@ if(PSVITA)
         message(FATAL_ERROR "vitasdk not populated")
     endif()
 
-    message(STATUS "vitasdk fetched '${vitasdk_SOURCE_DIR}')
+    message(STATUS "vitasdk fetched '${vitasdk_SOURCE_DIR}'")
     
     if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         set(CMAKE_TOOLCHAIN_FILE "${vitasdk_SOURCE_DIR}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
@@ -1356,7 +1356,7 @@ if(PSVITA)
 
     # This line adds Vita helper macros, must go after project definition in order
     # to build Vita specific artifacts (self/vpk).
-    include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
+    include("${vitasdk_SOURCE_DIR}/share/vita.cmake" REQUIRED)
 
     ## Configuration options for this app
     # Display name (under bubble in LiveArea)
@@ -1374,20 +1374,20 @@ if(PSVITA)
     # Optional. You can specify more param.sfo flags this way.
     set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 
-    set(COMMON_DIR $ENV{VITASDK}/share/gcc-arm-vita-eabi/samples/common)
-    set(HELLO_DIR $ENV{VITASDK}/share/gcc-arm-vita-eabi/samples/hello_world)
+    set(COMMON_DIR ${vitasdk_SOURCE_DIR}/share/gcc-arm-vita-eabi/samples/common)
+    set(HELLO_DIR ${vitasdk_SOURCE_DIR}/share/gcc-arm-vita-eabi/samples/hello_world)
 
     # Add any additional include paths here
     include_directories(
      ${COMMON_DIR} # This is for debugScreenPrintf(), you shouldn't need it in your projects
-     $ENV{VITASDK}/arm-vita-eabi/include
+     ${vitasdk_SOURCE_DIR}/arm-vita-eabi/include
     )
 
     # Add any additional library paths here
     # ${CMAKE_CURRENT_BINARY_DIR} lets you use any library currently being built
     link_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
-     $ENV{VITASDK}/arm-vita-eabi/lib
+     ${vitasdk_SOURCE_DIR}/arm-vita-eabi/lib
     )
 
     ## Build and link
