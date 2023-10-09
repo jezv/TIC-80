@@ -1,10 +1,12 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.11)
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 2)
 set(VERSION_REVISION 0)
 set(VERSION_STATUS "-dev")
 string(TIMESTAMP VERSION_YEAR "%Y")
+
+include(FetchContent)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(VERSION_BUILD ".dbg" )
@@ -53,12 +55,26 @@ if(APPLE)
 endif()
 
 if(PSVITA)
-    set(VITASDK_INSTALL_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk)
-    set(VITASDK_INSTALL_LOGS_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk-log)
-    set(ENV{VITASDK} ${VITASDK_INSTALL_DIR})
-    set(VDPM_DIR ${CMAKE_SOURCE_DIR}/vendor/vdpm)
+    #set(VITASDK_INSTALL_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk)
+    #set(VITASDK_INSTALL_LOGS_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk-log)
+    #set(ENV{VITASDK} ${VITASDK_INSTALL_DIR})
+    #set(VDPM_DIR ${CMAKE_SOURCE_DIR}/vendor/vdpm)
+
+    FetchContent_Declare(
+        vitasdk
+        URL      https://github.com/vitasdk/autobuilds/releases/download/master-linux-v2.515/vitasdk-x86_64-linux-gnu-2023-10-05_03-07-50.tar.bz2
+        URL_HASH MD5=5588a7b18261c20068beabfb4f530b87
+    )
+
+    FetchContent_MakeAvailable(vitasdk)
+
+    message(FATAL_ERROR vitasdk... ${vitasdk_SOURCE_DIR}, ${vitasdk_POPULATED}, ${vitasdk_BINARY_DIR})
 
     if(NOT EXISTS ${VITASDK_INSTALL_DIR})
+        
+
+
+
         file(REMOVE_RECURSE ${VITASDK_INSTALL_DIR})
         file(MAKE_DIRECTORY ${VITASDK_INSTALL_DIR})
         file(MAKE_DIRECTORY ${VITASDK_INSTALL_LOGS_DIR})
