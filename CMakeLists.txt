@@ -60,10 +60,11 @@ if(PSVITA)
     #set(ENV{VITASDK} ${VITASDK_INSTALL_DIR})
     #set(VDPM_DIR ${CMAKE_SOURCE_DIR}/vendor/vdpm)
 
+    set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/vendor)
     FetchContent_Declare(
         vitasdk
         URL      https://github.com/vitasdk/autobuilds/releases/download/master-linux-v2.515/vitasdk-x86_64-linux-gnu-2023-10-05_03-07-50.tar.bz2
-        URL_HASH MD5=5588a7b18261c20068beabfb4f530b87
+        URL_HASH MD5=60f28f599189209c683e8c4fe7a68852
     )
 
     FetchContent_MakeAvailable(vitasdk)
