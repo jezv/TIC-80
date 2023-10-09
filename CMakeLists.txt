@@ -1392,9 +1392,9 @@ if(PSVITA)
 
     ## Build and link
     # Add all the files needed to compile here
-    add_executable(vitahello
-    ${HELLO_DIR}/src/main.c
-    ${COMMON_DIR}/debugScreen.c
+    add_executable(${VELF_NAME}
+        ${HELLO_DIR}/src/main.c
+        ${COMMON_DIR}/debugScreen.c
     )
 
     # Library to link to (drop the -l prefix). This will mostly be stubs.
@@ -1409,12 +1409,12 @@ if(PSVITA)
     # The FILE directive lets you add additional files to the VPK, the syntax is
     # FILE src_path dst_path_in_vpk. In this case, we add the LiveArea paths.
     vita_create_vpk(${VELF_NAME}.vpk ${VITA_TITLEID} ${VELF_NAME}.self
-    VERSION ${VITA_VERSION}
-    NAME ${VITA_APP_NAME}
-    FILE ${SCE_DIR}/icon0.png ${SCE_DIR}/icon0.png
-    FILE ${SCE_DIR}/livearea/contents/bg.png ${SCE_DIR}/livearea/contents/bg.png
-    FILE ${SCE_DIR}/livearea/contents/startup.png ${SCE_DIR}/livearea/contents/startup.png
-    FILE ${SCE_DIR}/livearea/contents/template.xml ${SCE_DIR}/livearea/contents/template.xml
+        VERSION ${VITA_VERSION}
+        NAME ${VITA_APP_NAME}
+        FILE ${HELLO_DIR}/sce_sys/icon0.png sce_sys/icon0.png
+        FILE ${HELLO_DIR}/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
+        FILE ${HELLO_DIR}/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
+        FILE ${HELLO_DIR}/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
     )
 endif()
 
