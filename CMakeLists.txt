@@ -55,11 +55,6 @@ if(APPLE)
 endif()
 
 if(PSVITA)
-    #set(VITASDK_INSTALL_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk)
-    #set(VITASDK_INSTALL_LOGS_DIR ${CMAKE_BINARY_DIR}/vendor/vitasdk-log)
-    #set(ENV{VITASDK} ${VITASDK_INSTALL_DIR})
-    #set(VDPM_DIR ${CMAKE_SOURCE_DIR}/vendor/vdpm)
-
     set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/vendor)
     FetchContent_Declare(
         vitasdk
@@ -69,52 +64,14 @@ if(PSVITA)
 
     FetchContent_MakeAvailable(vitasdk)
 
-    message(FATAL_ERROR vitasdk... ${vitasdk_SOURCE_DIR}, ${vitasdk_POPULATED}, ${vitasdk_BINARY_DIR})
-
-    if(NOT EXISTS ${VITASDK_INSTALL_DIR})
-        
-
-
-
-        file(REMOVE_RECURSE ${VITASDK_INSTALL_DIR})
-        file(MAKE_DIRECTORY ${VITASDK_INSTALL_DIR})
-        file(MAKE_DIRECTORY ${VITASDK_INSTALL_LOGS_DIR})
-
-        # remove tmp files, otherwise vdpm assumes you already have things installed
-        file(GLOB DIRTY_TMP_FILES /tmp/vdpm_install_*)
-        list(LENGTH DIRTY_TMP_FILES FLEN)
-        if(FLEN)
-            file(REMOVE_RECURSE ${DIRTY_TMP_FILES})
-        endif()
-
-        function(vitasdksetup CMD)
-            set(VITASDKSETUP_LOGFILE ${VITASDK_INSTALL_LOGS_DIR}/${CMD}.log)
-            message(STATUS "invoking ${VDPM_DIR}/${CMD} logging to ${VITASDKSETUP_LOGFILE}")
-            execute_process( 
-                COMMAND ./${CMD}
-                RESULT_VARIABLE CMD_ERROR
-                WORKING_DIRECTORY ${VDPM_DIR}
-                OUTPUT_FILE ${VITASDKSETUP_LOGFILE}
-                ERROR_FILE ${VITASDKSETUP_LOGFILE}
-            )
-            if (CMD_ERROR)
-                message(FATAL_ERROR "psvitasdk ${CMD} failed returned:'${CMD_ERROR}', for details see log:'${VITASDKSETUP_LOGFILE}'")
-            endif()
-        endfunction()
-        
-        vitasdksetup(bootstrap-vitasdk.sh)
-        vitasdksetup(install-all.sh)
-        
-        message(STATUS "psvita vitasdk successfully installed to:'${VITASDK_INSTALL_DIR}'")
-    else()
-        message(STATUS "psvita vitasdk already installed at:'${VITASDK_INSTALL_DIR}'")
+    if(NOT ${vitasdk_POPULATED})
+        message(FATAL_ERROR "vitasdk not populated")
     endif()
+
+    message(STATUS "vitasdk fetched '${vitasdk_SOURCE_DIR}')
     
-    ## This includes the Vita toolchain, must go before project definition
-    # It is a convenience so you do not have to type
-    # -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake for cmake. It is
     if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
+        set(CMAKE_TOOLCHAIN_FILE "${vitasdk_SOURCE_DIR}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
     endif()
 endif()
 

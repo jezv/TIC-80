@@ -162,6 +162,7 @@ build/pnglibconf.h
 build/windows/*.rc
 *.ninja
 tic80.sublime-workspace
+TIC-80.code-workspace
 build/*.tic
 build/*.vcxproj
 build/*.vcxproj.filters
