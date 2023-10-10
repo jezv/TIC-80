@@ -58,6 +58,7 @@ if(PSVITA)
     set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/vendor)
     FetchContent_Declare(
         vitasdk
+        PATCH_COMMAND ../../build/psvita/patch.sh
         URL      https://github.com/vitasdk/autobuilds/releases/download/master-linux-v2.515/vitasdk-x86_64-linux-gnu-2023-10-05_03-07-50.tar.bz2
         URL_HASH MD5=60f28f599189209c683e8c4fe7a68852
     )
@@ -1405,7 +1406,11 @@ if(PSVITA)
     )
 
     ## Create Vita files
-    vita_create_self(${VELF_NAME}.self ${VELF_NAME})
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        vita_create_self(${VELF_NAME}.self ${VELF_NAME})
+    else()
+        vita_create_self(${VELF_NAME}.self ${VELF_NAME} REL_OPTIMIZE)
+    endif()
     # The FILE directive lets you add additional files to the VPK, the syntax is
     # FILE src_path dst_path_in_vpk. In this case, we add the LiveArea paths.
     vita_create_vpk(${VELF_NAME}.vpk ${VITA_TITLEID} ${VELF_NAME}.self
