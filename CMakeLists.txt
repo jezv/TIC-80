@@ -1353,7 +1353,7 @@ endif()
 if(PSVITA)
 
     ################# HELLO WORLD TEST ##################
-    set(GAME blah)
+    set(GAME hello2)
 
     # This line adds Vita helper macros, must go after project definition in order
     # to build Vita specific artifacts (self/vpk).
@@ -1364,7 +1364,7 @@ if(PSVITA)
     set(VITA_APP_NAME "Hello World")
     # Unique ID must be exactly 9 characters. Recommended: XXXXYYYYY where X =
     # unique string of developer and Y = a unique number for this app
-    set(VITA_TITLEID  "TIC000080")
+    set(VITA_TITLEID  "TEST80808")
     # Optional version string to show in LiveArea's more info screen
     set(VITA_VERSION  ${PROJECT_VERSION})
 
@@ -1456,14 +1456,14 @@ if(PSVITA)
 
     # The FILE directive lets you add additional files to the VPK, the syntax is
     # FILE src_path dst_path_in_vpk. In this case, we add the LiveArea paths.
-    #vita_create_vpk(${GAME}.vpk ${VITA_TITLEID} ${GAME}.self
-    #    VERSION ${VITA_VERSION}
-    #    NAME ${VITA_APP_NAME}
-    #    FILE ${HELLO_DIR}/sce_sys/icon0.png sce_sys/icon0.png
-    #    FILE ${HELLO_DIR}/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
-    #    FILE ${HELLO_DIR}/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
-    #    FILE ${HELLO_DIR}/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
-    #)
+    vita_create_vpk(${GAME}.vpk ${VITA_TITLEID} ${BDIR}/${GAME}.self
+        VERSION ${VITA_VERSION}
+        NAME ${VITA_APP_NAME}
+        FILE ${HELLO_DIR}/sce_sys/icon0.png sce_sys/icon0.png
+        FILE ${HELLO_DIR}/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
+        FILE ${HELLO_DIR}/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
+        FILE ${HELLO_DIR}/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+    )
 endif()
 
 ################################
