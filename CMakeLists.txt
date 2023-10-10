@@ -1353,7 +1353,7 @@ endif()
 if(PSVITA)
 
     ################# HELLO WORLD TEST ##################
-    set(VELF_NAME blah)
+    set(GAME blah)
 
     # This line adds Vita helper macros, must go after project definition in order
     # to build Vita specific artifacts (self/vpk).
@@ -1393,34 +1393,77 @@ if(PSVITA)
 
     ## Build and link
     # Add all the files needed to compile here
-    add_executable(${VELF_NAME}
+    add_executable(${GAME}
         ${HELLO_DIR}/src/main.c
         ${COMMON_DIR}/debugScreen.c
     )
 
     # Library to link to (drop the -l prefix). This will mostly be stubs.
-    target_link_libraries(${VELF_NAME}
+    target_link_libraries(${GAME}
     SceLibKernel_stub # this line is only for demonstration. It's not needed as
                         # the most common stubs are automatically included.
     SceDisplay_stub   # This used by debugScreenPrintf()
     )
 
+    set(PSP2RELA "${VITASDK}/bin/psp2rela")
+
+    set(BDIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
     ## Create Vita files
+    add_custom_command(
+        OUTPUT ${BDIR}/${GAME}.dbg.velf
+        COMMAND ${VITA_ELF_CREATE} $<TARGET_FILE:${GAME}> ${BDIR}/${GAME}.dbg.velf
+        DEPENDS ${GAME}
+    )
+    add_custom_target(${GAME}-dbg-velf DEPENDS ${BDIR}/${GAME}.dbg.velf)
+
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        vita_create_self(${VELF_NAME}.self ${VELF_NAME})
+        add_custom_command(
+            OUTPUT ${BDIR}/${GAME}.velf
+            COMMAND ${CMAKE_COMMAND} -E create_symlink ${BDIR}/${GAME}.dbg.velf ${BDIR}/${GAME}.velf
+            DEPENDS ${BDIR}/${GAME}.dbg.velf
+        )
     else()
-        vita_create_self(${VELF_NAME}.self ${VELF_NAME} REL_OPTIMIZE)
+        add_custom_command(
+            OUTPUT ${BDIR}/${GAME}.velf
+            COMMAND ${PSP2RELA} -src=${BDIR}/${GAME}.dbg.velf -dst=${BDIR}/${GAME}.velf
+            DEPENDS ${BDIR}/${GAME}.dbg.velf
+        )
     endif()
+    add_custom_target(${GAME}-velf DEPENDS ${BDIR}/${GAME}.velf)
+
+    add_custom_command(
+        OUTPUT ${BDIR}/${GAME}.dbg.self
+        COMMAND ${VITA_MAKE_FSELF} ${BDIR}/${GAME}.velf ${BDIR}/${GAME}.dbg.self
+        DEPENDS ${BDIR}/${GAME}.velf
+    )
+    add_custom_target(${GAME}-dbg-self DEPENDS ${BDIR}/${GAME}.dbg.self)
+
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_custom_command(
+            OUTPUT ${BDIR}/${GAME}.self
+            COMMAND ${CMAKE_COMMAND} -E create_symlink ${BDIR}/${GAME}.dbg.self ${BDIR}/${GAME}.self
+            DEPENDS ${BDIR}/${GAME}.dbg.self
+        )
+    else()
+        add_custom_command(
+            OUTPUT ${BDIR}/${GAME}.self
+            COMMAND ${PSP2RELA} -src=${BDIR}/${GAME}.dbg.self -dst=${BDIR}/${GAME}.self
+            DEPENDS ${BDIR}/${GAME}.dbg.self
+        )
+    endif()
+    add_custom_target(${GAME}-self DEPENDS ${BDIR}/${GAME}.self)
+
     # The FILE directive lets you add additional files to the VPK, the syntax is
     # FILE src_path dst_path_in_vpk. In this case, we add the LiveArea paths.
-    vita_create_vpk(${VELF_NAME}.vpk ${VITA_TITLEID} ${VELF_NAME}.self
-        VERSION ${VITA_VERSION}
-        NAME ${VITA_APP_NAME}
-        FILE ${HELLO_DIR}/sce_sys/icon0.png sce_sys/icon0.png
-        FILE ${HELLO_DIR}/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
-        FILE ${HELLO_DIR}/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
-        FILE ${HELLO_DIR}/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
-    )
+    #vita_create_vpk(${GAME}.vpk ${VITA_TITLEID} ${GAME}.self
+    #    VERSION ${VITA_VERSION}
+    #    NAME ${VITA_APP_NAME}
+    #    FILE ${HELLO_DIR}/sce_sys/icon0.png sce_sys/icon0.png
+    #    FILE ${HELLO_DIR}/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
+    #    FILE ${HELLO_DIR}/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
+    #    FILE ${HELLO_DIR}/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+    #)
 endif()
 
 ################################
