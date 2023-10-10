@@ -58,7 +58,7 @@ if(PSVITA)
     set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/vendor)
     FetchContent_Declare(
         vitasdk
-        PATCH_COMMAND ${CMAKE_BINARY_DIR}/psvita/patch.sh
+        #PATCH_COMMAND ${CMAKE_BINARY_DIR}/psvita/patch.sh
         URL      https://github.com/vitasdk/autobuilds/releases/download/master-linux-v2.515/vitasdk-x86_64-linux-gnu-2023-10-05_03-07-50.tar.bz2
         URL_HASH MD5=60f28f599189209c683e8c4fe7a68852
     )
