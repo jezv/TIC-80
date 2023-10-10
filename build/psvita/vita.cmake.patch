@@ -1,0 +1,65 @@
+--- vita.cmake	2023-10-05 04:14:18.000000000 +0100
++++ "vita copy.cmake"	2023-10-10 11:27:02.347388461 +0100
+@@ -110,7 +110,7 @@
+   endif()
+ 
+   ## check source for being a target, otherwise it is a file path
+-  if(TARGET ${source})
++  if(NOT TARGET ${source})
+     set(sourcepath ${CMAKE_CURRENT_BINARY_DIR}/${source})
+   else()
+     set(sourcepath ${source})
+@@ -121,7 +121,7 @@
+   separate_arguments(VITA_ELF_CREATE_FLAGS)
+ 
+   if(vita_create_self_REL_OPTIMIZE)
+-    if(${CMAKE_VERSION} VERSION_LESS "3.20.0")
++    if(${CMAKE_VERSION} VERSION_LESS "3.2.0")
+       add_custom_target(${sourcefile}-velf ALL
+         COMMAND ${VITA_ELF_CREATE} ${VITA_ELF_CREATE_FLAGS} ${sourcepath} ${CMAKE_CURRENT_BINARY_DIR}/${sourcefile}.velf
+         COMMAND psp2rela -src=${CMAKE_CURRENT_BINARY_DIR}/${sourcefile}.velf -dst=${CMAKE_CURRENT_BINARY_DIR}/${sourcefile}.velf
+@@ -159,7 +159,7 @@
+       endif()
+     endif()
+   else()
+-    if(${CMAKE_VERSION} VERSION_LESS "3.20.0")
++    if(${CMAKE_VERSION} VERSION_LESS "3.2.0")
+       add_custom_target(${sourcefile}-velf ALL
+         COMMAND ${VITA_ELF_CREATE} ${VITA_ELF_CREATE_FLAGS} ${sourcepath} ${CMAKE_CURRENT_BINARY_DIR}/${sourcefile}.velf
+         DEPENDS ${sourcepath}
+@@ -216,7 +216,7 @@
+   endif()
+ 
+   ## SELF target
+-  if(${CMAKE_VERSION} VERSION_LESS "3.20.0")
++  if(${CMAKE_VERSION} VERSION_LESS "3.2.0")
+     add_custom_target(${target}
+       ALL
+       DEPENDS ${self_outfile}
+@@ -232,7 +232,7 @@
+   endif()
+ 
+   if(TARGET ${source})
+-    if(${CMAKE_VERSION} VERSION_LESS "3.20.0")
++    if(${CMAKE_VERSION} VERSION_LESS "3.2.0")
+       add_dependencies(${target} ${source})
+     else()
+       add_dependencies(${target}-self ${source})
+@@ -424,7 +424,7 @@
+   )
+ 
+   ## VPK target
+-  if(${CMAKE_VERSION} VERSION_LESS "3.20.0")
++  if(${CMAKE_VERSION} VERSION_LESS "3.2.0")
+     add_custom_target(${target}
+       ALL
+       DEPENDS ${vpk_outfile}
+@@ -440,7 +440,7 @@
+   endif()
+ 
+   if(TARGET ${eboot})
+-    if(${CMAKE_VERSION} VERSION_LESS "3.20.0")
++    if(${CMAKE_VERSION} VERSION_LESS "3.2.0")
+       add_dependencies(${target} ${eboot})
+     else()
+       add_dependencies(${target}-vpk ${eboot})
