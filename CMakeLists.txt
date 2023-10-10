@@ -1352,7 +1352,7 @@ endif()
 if(PSVITA)
 
     ################# HELLO WORLD TEST ##################
-    set(VELF_NAME vitahello)
+    set(VELF_NAME blah)
 
     # This line adds Vita helper macros, must go after project definition in order
     # to build Vita specific artifacts (self/vpk).
@@ -1398,11 +1398,11 @@ if(PSVITA)
     )
 
     # Library to link to (drop the -l prefix). This will mostly be stubs.
-    #target_link_libraries(${VELF_NAME}
-    #SceLibKernel_stub # this line is only for demonstration. It's not needed as
-    #                    # the most common stubs are automatically included.
-    #SceDisplay_stub   # This used by debugScreenPrintf()
-    #)
+    target_link_libraries(${VELF_NAME}
+    SceLibKernel_stub # this line is only for demonstration. It's not needed as
+                        # the most common stubs are automatically included.
+    SceDisplay_stub   # This used by debugScreenPrintf()
+    )
 
     ## Create Vita files
     vita_create_self(${VELF_NAME}.self ${VELF_NAME})
